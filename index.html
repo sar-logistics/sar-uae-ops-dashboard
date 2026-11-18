@@ -1413,8 +1413,8 @@ tr:hover td:first-child,tr:hover td.col-grand{background:#f8fbff}
         <div class="tb-ud-item" id="tb-currency-block" style="flex-direction:column;align-items:flex-start;gap:8px;padding:12px 16px">
           <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase">Currency</div>
           <div style="display:flex;background:var(--bg);border-radius:8px;padding:2px;gap:2px;width:100%">
-            <button id="cur-menu-aed" onclick="setCurrency('AED');toggleUserMenu()" style="flex:1;font-size:11px;font-weight:700;padding:5px 0;border-radius:6px;border:none;cursor:pointer;background:#2a78d6;color:#fff;transition:all .15s">AED</button>
-            <button id="cur-menu-usd" onclick="setCurrency('USD');toggleUserMenu()" style="flex:1;font-size:11px;font-weight:700;padding:5px 0;border-radius:6px;border:none;cursor:pointer;background:transparent;color:var(--text3);transition:all .15s">$ USD</button>
+            <button id="cur-menu-aed" onclick="setCurrency('AED');toggleUserMenu()" style="flex:1;font-size:11px;font-weight:700;padding:5px 0;border-radius:6px;border:none;cursor:pointer;background:transparent;color:var(--text3);transition:all .15s">AED</button>
+            <button id="cur-menu-usd" onclick="setCurrency('USD');toggleUserMenu()" style="flex:1;font-size:11px;font-weight:700;padding:5px 0;border-radius:6px;border:none;cursor:pointer;background:#2a78d6;color:#fff;transition:all .15s">$ USD</button>
           </div>
           <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
             <span style="font-size:10px;color:var(--text3)">1 USD = AED</span>
@@ -5539,7 +5539,7 @@ let dvActiveLob   = 'ALL';
 
 const DV_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-let currentCurrency = 'AED'; // AED (default, raw sheet value) or USD (converted)
+let currentCurrency = 'USD'; // USD (default, = AED / manualRate) or AED (raw sheet value)
 let manualRate = 3.6725; // AED per USD (the dirham's fixed peg), admin-adjustable in Admin Panel
 
 function getExchangeRate() {
@@ -6482,12 +6482,12 @@ function applyRLS() {
   document.getElementById('sys-usage').style.display  = canSeeTeamPages ? 'flex' : 'none';
   document.getElementById('sys-feedback').style.display = 'flex';
 
-  // Currency switch and exchange rate are Admin-only (same as Singapore); everyone else sees AED
+  // Currency switch and exchange rate are Admin-only (same as Singapore); everyone else sees USD
   ['tb-currency-divider', 'tb-currency-block'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isAdmin ? '' : 'none';
   });
-  if (!isAdmin && currentCurrency !== 'AED') { if (typeof window.setCurrency === 'function') window.setCurrency('AED'); else currentCurrency = 'AED'; }
+  if (!isAdmin && currentCurrency !== 'USD') { if (typeof window.setCurrency === 'function') window.setCurrency('USD'); else currentCurrency = 'USD'; }
 
   // Data scoping — Admin is the only bypass. Every other role is scoped
   // purely by name + reporting-to position in allUsers, ignoring the
@@ -6878,8 +6878,8 @@ async function loadAdminPanel(force) {
     <div style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;padding:14px 16px;margin-bottom:24px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
       <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase">Currency</div>
       <div style="display:flex;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
-        <button id="cur-inr" onclick="setCurrency('AED')" style="border:none;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;background:#1F3A6E;color:#fff">AED</button>
-        <button id="cur-usd" onclick="setCurrency('USD')" style="border:none;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">USD</button>
+        <button id="cur-inr" onclick="setCurrency('AED')" style="border:none;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;background:${currentCurrency === 'AED' ? '#1F3A6E' : 'transparent'};color:${currentCurrency === 'AED' ? '#fff' : '#64748b'}">AED</button>
+        <button id="cur-usd" onclick="setCurrency('USD')" style="border:none;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;background:${currentCurrency === 'USD' ? '#1F3A6E' : 'transparent'};color:${currentCurrency === 'USD' ? '#fff' : '#64748b'}">USD</button>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
         <span style="font-size:12px;color:#64748b">1 USD = AED</span>
