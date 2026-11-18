@@ -1408,8 +1408,8 @@ tr:hover td:first-child,tr:hover td.col-grand{background:#f8fbff}
             <div id="tb-last-updated" class="tb-ud-exact">—</div>
           </div>
         </div>
-        <div class="tb-ud-divider"></div>
-        <!-- Currency: amounts are AED in the sheets; USD = AED / rate (anyone can switch, it only changes the display) -->
+        <div class="tb-ud-divider" id="tb-currency-divider"></div>
+        <!-- Currency (Admin only - see applyRLS): amounts are AED in the sheets; USD = AED / rate -->
         <div class="tb-ud-item" id="tb-currency-block" style="flex-direction:column;align-items:flex-start;gap:8px;padding:12px 16px">
           <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase">Currency</div>
           <div style="display:flex;background:var(--bg);border-radius:8px;padding:2px;gap:2px;width:100%">
@@ -6481,6 +6481,13 @@ function applyRLS() {
   document.getElementById('sys-teams').style.display  = canSeeTeamPages ? 'flex' : 'none';
   document.getElementById('sys-usage').style.display  = canSeeTeamPages ? 'flex' : 'none';
   document.getElementById('sys-feedback').style.display = 'flex';
+
+  // Currency switch and exchange rate are Admin-only (same as Singapore); everyone else sees AED
+  ['tb-currency-divider', 'tb-currency-block'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isAdmin ? '' : 'none';
+  });
+  if (!isAdmin && currentCurrency !== 'AED') { if (typeof window.setCurrency === 'function') window.setCurrency('AED'); else currentCurrency = 'AED'; }
 
   // Data scoping — Admin is the only bypass. Every other role is scoped
   // purely by name + reporting-to position in allUsers, ignoring the
