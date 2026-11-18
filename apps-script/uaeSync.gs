@@ -19,7 +19,8 @@ var UAE = {
   DEST_ID: '1VgQDAz_2r9nVu5xZKsveFIRq9kykqzGe4ZYobErFfiw',
   DASHBOARD_URL: 'https://sar-uae-ops-dashboard.vercel.app',   // TODO: confirm once the Vercel project exists
   EVA_TABS: ['CY2025', 'CY2026'],
-  CHUNK: 500
+  CHUNK: 500,
+  MIN_SHARE: 0.7   // a sync that reads under 70% of the last sync's rows is stopped (see uaeCheckNotShrunk)
 };
 
 // ─────────────────────────────── pure helpers (no Google services) ───────────────────────────────
@@ -213,11 +214,29 @@ function uaePush(direction, records) {
   for (var i = 0; i < records.length; i += UAE.CHUNK) uaePost({ action: 'push', direction: direction, records: records.slice(i, i + UAE.CHUNK) });
 }
 
+// Safety check before anything is overwritten: if an RPA run left a sheet empty or half-filled,
+// stop and keep yesterday's data (on the dashboard and in the tabs) instead of wiping it.
+// Compares with the row count of the last good sync, kept in the source sheet's own tabs.
+function uaeCheckNotShrunk(name, newCount, tabName) {
+  if (!newCount) throw new Error('UAE sync stopped: ' + name + ' read 0 rows - the RPA sheet looks empty. Yesterday\'s data was kept.');
+  var sh = SpreadsheetApp.openById(UAE.DEST_ID).getSheetByName(tabName);
+  var prev = sh ? Math.max(0, sh.getLastRow() - 1) : 0;
+  if (prev && newCount < prev * UAE.MIN_SHARE) {
+    throw new Error('UAE sync stopped: ' + name + ' read ' + newCount + ' rows, last sync had ' + prev +
+      ' (less than ' + Math.round(UAE.MIN_SHARE * 100) + '%). The RPA sheet may be incomplete - yesterday\'s data was kept. ' +
+      'If the drop is real, run dailySyncUaeForce() once.');
+  }
+}
+
 /** Daily: read both RPA sheets -> source sheet tabs -> dashboard database. */
-function dailySyncUae() {
+function dailySyncUae(force) {
   var started = new Date();
   var jobs = uaeParseJpa(uaeReadJpaRows());
   var lines = uaeParseLines(uaeReadEvaTabs(), jobs);
+  if (force !== true) {
+    uaeCheckNotShrunk('JPA - SAR_UAE (jobs)', jobs.length, UAE_TABS.jobs);
+    uaeCheckNotShrunk('Estimated vs Actual_UAE (charge lines)', lines.length, UAE_TABS.lines);
+  }
   var opsRows = SpreadsheetApp.openById(UAE.DEST_ID).getSheetByName(UAE_TABS.ops);
   var ops = uaeParseOpsMapping(opsRows ? opsRows.getDataRange().getValues() : []);
   uaeWriteTab(UAE_TABS.jobs, jobs);
@@ -227,6 +246,9 @@ function dailySyncUae() {
   if (ops.length) uaePush('OpsMapping', ops);
   Logger.log('UAE sync: %s jobs, %s lines, %s ops mapping rows in %ss', jobs.length, lines.length, ops.length, Math.round((new Date() - started) / 1000));
 }
+
+/** Same as dailySyncUae but skips the safety check - only for a real, expected drop in rows. */
+function dailySyncUaeForce() { dailySyncUae(true); }
 
 /** Runs dailySyncUae every day around 10:30 IST (the RPA refreshes the JPA at ~10:07). */
 function setupDailyTrigger() {
