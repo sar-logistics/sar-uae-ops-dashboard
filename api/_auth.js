@@ -3,7 +3,7 @@
 import crypto from 'crypto';
 import { MongoClient } from 'mongodb';
 
-export const GOOGLE_CLIENT_ID = 'UAE_GOOGLE_CLIENT_ID.apps.googleusercontent.com'  // TODO: UAE Google sign-in client;
+export const GOOGLE_CLIENT_ID = '1073563757694-h377ccc8rjk2khsccij78l381a4imj6p.apps.googleusercontent.com';  // UAE Google sign-in client (project sar-uae)
 const HUB_ISSUER = 'sar-systems-hub';
 const DEFAULT_HUB_ORIGIN = 'https://systems.sarlogisolutions.com';
 export const DB_NAME = process.env.MONGO_DB || 'sar-uae-ops';
