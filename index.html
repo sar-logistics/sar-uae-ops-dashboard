@@ -1409,6 +1409,21 @@ tr:hover td:first-child,tr:hover td.col-grand{background:#f8fbff}
           </div>
         </div>
         <div class="tb-ud-divider"></div>
+        <!-- Currency: amounts are AED in the sheets; USD = AED / rate (anyone can switch, it only changes the display) -->
+        <div class="tb-ud-item" id="tb-currency-block" style="flex-direction:column;align-items:flex-start;gap:8px;padding:12px 16px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase">Currency</div>
+          <div style="display:flex;background:var(--bg);border-radius:8px;padding:2px;gap:2px;width:100%">
+            <button id="cur-menu-aed" onclick="setCurrency('AED');toggleUserMenu()" style="flex:1;font-size:11px;font-weight:700;padding:5px 0;border-radius:6px;border:none;cursor:pointer;background:#2a78d6;color:#fff;transition:all .15s">AED</button>
+            <button id="cur-menu-usd" onclick="setCurrency('USD');toggleUserMenu()" style="flex:1;font-size:11px;font-weight:700;padding:5px 0;border-radius:6px;border:none;cursor:pointer;background:transparent;color:var(--text3);transition:all .15s">$ USD</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+            <span style="font-size:10px;color:var(--text3)">1 USD = AED</span>
+            <input id="usd-rate-input" type="number" value="3.6725" min="0.01" step="0.0001"
+              style="width:70px;font-size:11px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);background:#fff;color:var(--text1);outline:none"
+              oninput="manualRate=(parseFloat(this.value)>0?parseFloat(this.value):3.6725);const a=document.getElementById('admin-usd-rate-input');if(a)a.value=this.value;renderPage(document.querySelector('.page.active')?.id.replace('page-',''))" />
+          </div>
+        </div>
+        <div class="tb-ud-divider"></div>
         <button class="tb-ud-item tb-ud-btn" id="feedbackBtn" onclick="openFeedback();toggleUserMenu()">
           <i class="ti ti-message-circle"></i>Submit a Ticket
         </button>
@@ -6863,7 +6878,7 @@ async function loadAdminPanel(force) {
         <span style="font-size:12px;color:#64748b">1 USD = AED</span>
         <input id="admin-usd-rate-input" type="number" value="${manualRate}" min="1" step="0.01"
           style="width:80px;font-size:13px;padding:5px 8px;border-radius:6px;border:1px solid #e2e8f0;background:#fff;color:#0f172a;outline:none"
-          oninput="manualRate=(parseFloat(this.value)>0?parseFloat(this.value):3.6725);renderPage(document.querySelector('.page.active')?.id.replace('page-',''))" />
+          oninput="manualRate=(parseFloat(this.value)>0?parseFloat(this.value):3.6725);const t=document.getElementById('usd-rate-input');if(t)t.value=this.value;renderPage(document.querySelector('.page.active')?.id.replace('page-',''))" />
       </div>
       <div style="font-size:11px;color:#94a3b8">Rate only applies when USD is selected</div>
     </div>`;
@@ -7639,6 +7654,10 @@ function renderSummary() {
     const usdBtn = document.getElementById('cur-usd');
     if (inrBtn) { inrBtn.style.background = cur === 'AED' ? '#1F3A6E' : 'transparent'; inrBtn.style.color = cur === 'AED' ? '#fff' : '#64748b'; }
     if (usdBtn) { usdBtn.style.background = cur === 'USD' ? '#1F3A6E' : 'transparent'; usdBtn.style.color = cur === 'USD' ? '#fff' : '#64748b'; }
+    [['cur-menu-aed', 'AED'], ['cur-menu-usd', 'USD']].forEach(([id, c]) => {
+      const b = document.getElementById(id);
+      if (b) { b.style.background = cur === c ? '#2a78d6' : 'transparent'; b.style.color = cur === c ? '#fff' : 'var(--text3)'; }
+    });
     // Save expanded rows before re-render
     const openKeys = new Set();
     document.querySelectorAll('.rc.open').forEach(rc => { if (rc.id) openKeys.add(rc.id); });
